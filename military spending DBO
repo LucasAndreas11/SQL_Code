@@ -1,0 +1,268 @@
+
+SELECT TOP (5400) 
+
+    [index],
+
+    [Year],
+
+    [Country],
+
+    CONVERT(DECIMAL(12,0), [Spending_2020_USD] * 100000) AS [Adjusted Spending 2020 USD],
+
+    CONVERT(DECIMAL(8,2), [Percent_of_GDP] * 100) AS [Adjusted % of GDP],  
+
+    CONVERT(DECIMAL(8,2), [Percent_of_Government_Spending] * 100) AS [Adjusted % of Gov Spending],
+
+    CONVERT(DECIMAL(8,0), [Spending_per_Capita]) AS [Adjusted Spending per Capita]
+
+FROM [dbo].[Military Expenditures]
+ 
+ 
+--Create contientn comparisons
+
+--create G7 vs G57 comaprison,
+
+--North V South for Adjusted spending %
+ 
+ 
+--G7 pivot
+
+SELECT *
+
+FROM 
+
+(
+
+    SELECT [Country], [Year],  CONVERT(DECIMAL(8,2), [Percent_of_GDP] * 100) AS [Adjusted % of GDP]
+
+    FROM [dbo].[Military Expenditures]
+
+) AS basedata
+
+PIVOT 
+
+(
+
+    SUM([Adjusted % of GDP]) 
+
+    FOR [Country] IN ([Japan], [Canada], [France], [Germany], [United Kingdom], [United States of America], [Italy])
+
+) AS Pivotdata;
+ 
+ 
+
+ 
+---Pivot Queries
+
+--G7 pivot
+
+SELECT *
+
+FROM 
+
+(SELECT [Country], [Year],  CONVERT(DECIMAL(8,2), [Percent_of_GDP] * 100) AS [Adjusted % of GDP]
+
+    FROM [dbo].[Military Expenditures]
+
+) AS basedata
+
+PIVOT 
+
+(
+
+    SUM([Adjusted % of GDP]) 
+
+    FOR [Country] IN ([Japan], [Canada], [France], [Germany], [United Kingdom], [United States of America], [Italy])
+
+) AS PivotG7;
+ 
+--Middle East and USA
+
+SELECT *
+
+FROM 
+
+(SELECT [Country], [Year],  CONVERT(DECIMAL(8,2), [Percent_of_GDP] * 100) AS [Adjusted % of GDP]
+
+    FROM [dbo].[Military Expenditures]
+
+) AS basedata
+
+PIVOT 
+
+(
+
+    SUM([Adjusted % of GDP]) 
+
+    FOR [Country] IN ([Isreal], [Iran], [Iraq], [Saudi Arabia], [Jordan], [United States of America], [Lebannon])
+
+) AS PivotMiddleEast;
+ 
+ 
+--South america pivot
+
+SELECT *
+
+FROM 
+
+(SELECT [Country], [Year],  CONVERT(DECIMAL(8,2), [Percent_of_GDP] * 100) AS [Adjusted % of GDP]
+
+    FROM [dbo].[Military Expenditures]
+
+) AS basedata
+
+PIVOT 
+
+(
+
+    SUM([Adjusted % of GDP]) 
+
+    FOR [Country] IN ([Argentina], [Colombia], [Brazil], [Ecuador], [Uruguay], [Chile], [Peru])
+
+) AS PivotSamerica;
+ 
+	-- Africa Pivot
+
+SELECT *
+
+FROM 
+
+(
+
+    SELECT [Country], [Year], CONVERT(DECIMAL(8,2), [Percent_of_GDP] * 100) AS [Adjusted % of GDP]
+
+    FROM [dbo].[Military Expenditures]
+
+) AS basedata
+
+PIVOT 
+
+(
+
+    SUM([Adjusted % of GDP]) 
+
+    FOR [Country] IN ([Algeria], [Nigeria], [Libya], [Cameroon], [Kenya], [Morocco], [Uganda], [Mali], [Ethiopia], [Nepal], [Tanzania], [Sudan], [Oman])
+
+) AS PivotAfrica;
+ 
+ 
+--Asia pivot
+
+SELECT *
+
+FROM 
+
+(
+
+    SELECT [Country], [Year], CONVERT(DECIMAL(8,2), [Percent_of_GDP] * 100) AS [Adjusted % of GDP]
+
+    FROM [dbo].[Military Expenditures]
+
+) AS basedata
+
+PIVOT 
+
+(
+
+    SUM([Adjusted % of GDP]) 
+
+    FOR [Country] IN ([China], [Korea, South], [Indonesia], [Japan], [Vietnam], [Thailand], [Malaysia], [Singapore], [Sri Lanka], [Taiwan], [Viet Nam], [Pakistan], [India])
+
+) AS PivotAsia;
+ 
+ 
+--Western Europe pivot
+ 
+SELECT *
+
+FROM 
+
+(
+
+    SELECT [Country], [Year], CONVERT(DECIMAL(8,2), [Percent_of_GDP] * 100) AS [Adjusted % of GDP]
+
+    FROM [dbo].[Military Expenditures]
+
+) AS basedata
+
+PIVOT 
+
+(
+
+    SUM([Adjusted % of GDP]) 
+
+    FOR [Country] IN ([Germany], [France], [Spain], [Italy], [Ireland], [United Kingdom], [Belgium], [Netherlands], [Austria], [Switzerland], [Greece], [Sweden], [Norway], [Finland])
+ 
+	) as pivotdatawest;
+
+--Eastern Europe pivot
+ 
+SELECT *
+
+FROM 
+
+(
+
+    SELECT [Country], [Year], CONVERT(DECIMAL(8,2), [Percent_of_GDP] * 100) AS [Adjusted % of GDP]
+
+    FROM [dbo].[Military Expenditures]
+
+) AS basedata
+
+PIVOT 
+
+(
+
+    SUM([Adjusted % of GDP]) 
+
+    FOR [Country] IN ([Hungary], [Poland], [Serbia], [Turkey], [Malta], [Belarus], [Ukraine], [USSR], [Lithuania], [Romania], [Croatia])
+
+) AS PivotdataEastE;
+ 
+ 
+--North/Central America pivot
+
+SELECT *
+
+FROM 
+
+(
+
+    SELECT [Country], [Year], CONVERT(DECIMAL(8,2), [Percent_of_GDP] * 100) AS [Adjusted % of GDP]
+
+    FROM [dbo].[Military Expenditures]
+
+) AS basedata
+
+PIVOT 
+
+(
+
+    SUM([Adjusted % of GDP]) 
+
+    FOR [Country] IN ([United States of America], [Mexico], [Canada], [Dominican Republic], [Guatemala], [El Salvador])
+
+) AS PivotAmericaNandC;
+
+ 
+
+SELECT 
+   *,
+   ([Adjusted Spending 2020 USD] - [Last Year]) AS [Difference in $]
+FROM
+   (
+   SELECT 
+       [Index],
+       [Country],
+       [Year],
+CONVERT(DECIMAL(8,2), [Percent_of_GDP] * 100) AS [Adjusted % of GDP], 
+       CONVERT(DECIMAL(12,0), [Spending_2020_USD] * 100000) AS [Adjusted Spending 2020 USD],
+       CONVERT(DECIMAL(12,0), LAG([Spending_2020_USD] * 100000, 1, NULL) OVER (PARTITION BY [Country] ORDER BY [Year])) AS [Last Year]
+  
+  
+  FROM 
+       [dbo].[Military Expenditures]
+   WHERE 
+       [Country] = 'El Salvador'
+   ) AS subq1;
+ 
